@@ -29,7 +29,8 @@ def findZero(matrix):
     print("0 bulunamadı")
     return (-1, -1)
 
-def findElement(matrix,n):
+
+def findElement(matrix, n):
     for i in range(len(matrix)):
         for j in range(len(matrix[i])):
             if matrix[i][j] == n:
@@ -38,6 +39,7 @@ def findElement(matrix,n):
     # normal şartlarda bura çalışmamalı
     print("0 bulunamadı")
     return (-1, -1)
+
 
 def findPossibleMoves(matrix, previusMovement=""):
     x, y = findZero(matrix)
@@ -93,25 +95,29 @@ def defineNxMmatrix(n, m):
     # print(matrix)
     # printMatrix(matrix)
     return matrix
+
+
 def defineMatrix(n):
-    solvedMatrix= defineDestinationMatrix(n)
-    for i in range(619):
-        moves=findPossibleMoves(solvedMatrix)
-        nextMove=random.choice(moves)
-        zeroX,zeroY=findZero(solvedMatrix)
-        if "l" ==nextMove:
-            solvedMatrix = swap(solvedMatrix, zeroX,zeroY, zeroX, zeroY - 1)
+    solvedMatrix = defineDestinationMatrix(n)
+    for i in range(50):
+        moves = findPossibleMoves(solvedMatrix)
+        nextMove = random.choice(moves)
+        zeroX, zeroY = findZero(solvedMatrix)
+        if "l" == nextMove:
+            solvedMatrix = swap(solvedMatrix, zeroX, zeroY, zeroX, zeroY - 1)
 
-        if "r" ==nextMove:
-            solvedMatrix = swap(solvedMatrix, zeroX, zeroY,zeroX, zeroY + 1)
+        if "r" == nextMove:
+            solvedMatrix = swap(solvedMatrix, zeroX, zeroY, zeroX, zeroY + 1)
 
-        if "u" ==nextMove:
+        if "u" == nextMove:
             solvedMatrix = swap(solvedMatrix, zeroX, zeroY, zeroX - 1, zeroY)
 
-        if "d" ==nextMove:
+        if "d" == nextMove:
             solvedMatrix = swap(solvedMatrix, zeroX, zeroY, zeroX + 1, zeroY)
 
     return solvedMatrix
+
+
 def defineDestinationMatrix(n):
     n = math.ceil(math.sqrt(n + 1))
     matrix = []  # define empty matrix
@@ -123,33 +129,48 @@ def defineDestinationMatrix(n):
             row.append(k)
             k += 1
         matrix.append(row)
-    matrix[n-1][n-1]=0
+    matrix[n - 1][n - 1] = 0
     return matrix
-def verifyMatrix(matrix):
-    temp = 1
-    for i in matrix:
-        for j in i:
-            if j == 0:
+
+
+# def verifyMatrix(matrix):
+#     temp = 1
+#     for i in matrix:
+#         for j in i:
+#             if j == 0:
+#                 continue
+#             if j == temp:
+#                 temp += 1
+#             else:
+#                 # print("matrix uygun değil")
+#                 return False
+#     # birden fazla 0 var ise kontrol edelim
+#     if temp == len(matrix) * len(matrix[0]):
+#         print("matrix uygun")
+#         printMatrix(matrix)
+#         return True
+#     else:
+#         # normal şartlarda bura çalışmamalı
+#         print("matrix uygun değil")
+#         return False
+
+def verifyMatrix(matrix, destinationMatrix):
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            if matrix[i][j] == destinationMatrix[i][j]:
                 continue
-            if j == temp:
-                temp += 1
             else:
                 # print("matrix uygun değil")
                 return False
-    # birden fazla 0 var ise kontrol edelim
-    if temp == len(matrix) * len(matrix[0]):
-        print("matrix uygun")
-        printMatrix(matrix)
-        return True
-    else:
-        # normal şartlarda bura çalışmamalı
-        print("matrix uygun değil")
-        return False
+    return True
 
 
 class Node:
-    def __init__(self, matrix,depth, prevMovement=""):
+    def __init__(self, matrix, destinationMatrix, depth, prevMovement=""):
         self.matrix = matrix
+        # self.destMatrix = defineDestinationMatrix(len(matrix) * len(matrix) - 1)
+        self.destMatrix = destinationMatrix
+        self.cost = calculateHeuristic(matrix, self.destMatrix)
         self.prevMovement = prevMovement
         self.moves = findPossibleMoves(matrix, prevMovement)
         self.zeroX, self.zeroY = findZero(matrix)
@@ -157,12 +178,9 @@ class Node:
         self.right = None
         self.upper = None
         self.down = None
-        self.isValidGraph = verifyMatrix(self.matrix)
-        self.depth =depth
-        self.destMatrix = defineDestinationMatrix(len(matrix)*len(matrix)-1)
-        self.cost= calculateHeuristic(matrix,self.destMatrix)
-        self.astarcost=self.cost+self.depth
-
+        self.isValidGraph = verifyMatrix(self.matrix,self.destMatrix)
+        self.depth = depth
+        self.astarcost = self.cost + self.depth
 
     def hasValidChild(self):
 
@@ -186,19 +204,19 @@ class Node:
     def addChildren(self):
         tempNodeList = []
         if "l" in self.moves:
-            self.left = Node(swap(self.matrix, self.zeroX, self.zeroY, self.zeroX, self.zeroY - 1), self.depth+1,"l")
+            self.left = Node(swap(self.matrix, self.zeroX, self.zeroY, self.zeroX, self.zeroY - 1),self.destMatrix, self.depth + 1, "l")
             tempNodeList.append(self.left)
 
         if "r" in self.moves:
-            self.right = Node(swap(self.matrix, self.zeroX, self.zeroY, self.zeroX, self.zeroY + 1),self.depth+1, "r")
+            self.right = Node(swap(self.matrix, self.zeroX, self.zeroY, self.zeroX, self.zeroY + 1),self.destMatrix, self.depth + 1, "r")
             tempNodeList.append(self.right)
 
         if "u" in self.moves:
-            self.upper = Node(swap(self.matrix, self.zeroX, self.zeroY, self.zeroX - 1, self.zeroY), self.depth+1,"u")
+            self.upper = Node(swap(self.matrix, self.zeroX, self.zeroY, self.zeroX - 1, self.zeroY),self.destMatrix, self.depth + 1,  "u")
             tempNodeList.append(self.upper)
 
         if "d" in self.moves:
-            self.down = Node(swap(self.matrix, self.zeroX, self.zeroY, self.zeroX + 1, self.zeroY), self.depth+1,"d")
+            self.down = Node(swap(self.matrix, self.zeroX, self.zeroY, self.zeroX + 1, self.zeroY),self.destMatrix, self.depth + 1, "d")
             tempNodeList.append(self.down)
 
         return tempNodeList
@@ -223,9 +241,6 @@ class Node:
             printMatrix(self.down.matrix)
 
 
-
-
-
 def bfsWithAdder(root):
     queue = []
     queue.append(root)
@@ -243,8 +258,9 @@ def bfsWithAdder(root):
             break
         queue.extend(children)
 
+
 def greedyBestSearch(root):
-    sortedQueue=[]
+    sortedQueue = []
     sortedQueue.append(root)
     counter = 0
     while (len(sortedQueue) > 0):
@@ -260,26 +276,27 @@ def greedyBestSearch(root):
             break
         for i in range(len(children)):
             for j in range(len(children)):
-                if children[i].cost<children[j].cost:
-                    temp=children[i]
-                    children[i]=children[j]
-                    children[j]=temp
+                if children[i].cost < children[j].cost:
+                    temp = children[i]
+                    children[i] = children[j]
+                    children[j] = temp
 
-        if len(sortedQueue)==0:
+        if len(sortedQueue) == 0:
             sortedQueue.extend(children)
         else:
             for i in range(len(children)):
-                added=False
+                added = False
                 for j in range(len(sortedQueue)):
-                    if children[i].cost<sortedQueue[j].cost:
-                        sortedQueue.insert(j,children[i])
-                        added=True
+                    if children[i].cost < sortedQueue[j].cost:
+                        sortedQueue.insert(j, children[i])
+                        added = True
                         break
-                if added==False:
+                if added == False:
                     sortedQueue.append(children[i])
+
 
 def uniformCostSearch(root):
-    sortedQueue=[]
+    sortedQueue = []
     sortedQueue.append(root)
     counter = 0
     while (len(sortedQueue) > 0):
@@ -295,26 +312,27 @@ def uniformCostSearch(root):
             break
         for i in range(len(children)):
             for j in range(len(children)):
-                if children[i].depth<children[j].depth:
-                    temp=children[i]
-                    children[i]=children[j]
-                    children[j]=temp
+                if children[i].depth < children[j].depth:
+                    temp = children[i]
+                    children[i] = children[j]
+                    children[j] = temp
 
-        if len(sortedQueue)==0:
+        if len(sortedQueue) == 0:
             sortedQueue.extend(children)
         else:
             for i in range(len(children)):
-                added=False
+                added = False
                 for j in range(len(sortedQueue)):
-                    if children[i].depth<sortedQueue[j].depth:
-                        sortedQueue.insert(j,children[i])
-                        added=True
+                    if children[i].depth < sortedQueue[j].depth:
+                        sortedQueue.insert(j, children[i])
+                        added = True
                         break
-                if added==False:
+                if added == False:
                     sortedQueue.append(children[i])
+
 
 def aStar(root):
-    sortedQueue=[]
+    sortedQueue = []
     sortedQueue.append(root)
     counter = 0
     while (len(sortedQueue) > 0):
@@ -330,26 +348,27 @@ def aStar(root):
             break
         for i in range(len(children)):
             for j in range(len(children)):
-                if children[i].astarcost<children[j].astarcost:
-                    temp=children[i]
-                    children[i]=children[j]
-                    children[j]=temp
+                if children[i].astarcost < children[j].astarcost:
+                    temp = children[i]
+                    children[i] = children[j]
+                    children[j] = temp
 
-        if len(sortedQueue)==0:
+        if len(sortedQueue) == 0:
             sortedQueue.extend(children)
         else:
             for i in range(len(children)):
-                added=False
+                added = False
                 for j in range(len(sortedQueue)):
-                    if children[i].astarcost<sortedQueue[j].astarcost:
-                        sortedQueue.insert(j,children[i])
-                        added=True
+                    if children[i].astarcost < sortedQueue[j].astarcost:
+                        sortedQueue.insert(j, children[i])
+                        added = True
                         break
-                if added==False:
+                if added == False:
                     sortedQueue.append(children[i])
 
-def depthLimitedSearch(root,limit):
-    stack=[]
+
+def depthLimitedSearch(root, limit):
+    stack = []
     stack.append(root)
     counter = 0
     while (len(stack) > 0):
@@ -363,12 +382,12 @@ def depthLimitedSearch(root,limit):
             print(f"SONUÇ {counter}. ADIMDA BULUNDU.  derinlik={indexNode.depth}")
             printMatrix(indexNode.hasValidChild().matrix)
             break
-        if children[0].depth>limit:
+        if children[0].depth > limit:
             continue
         else:
             stack.extend(children)
 
-    if len(stack)==0:
+    if len(stack) == 0:
         print("loop has broken and result could not  found")
 
 
@@ -389,38 +408,48 @@ def depthFirstSearch(root):
             break
         stack.extend(children)
 
-def calculateHeuristic(matrix,destMatrix):
-    n= len(matrix)
 
-    cost=0
+def calculateHeuristic(matrix, destMatrix):
+    n = len(matrix)
+
+    cost = 0
     for i in range(n):
         for j in range(n):
-            value=matrix[i][j]
-            desti,destj = findElement(destMatrix,value)
-            cost+= math.fabs(desti-i)+math.fabs(destj-j)
+            value = matrix[i][j]
+            desti, destj = findElement(destMatrix, value)
+            cost += math.fabs(desti - i) + math.fabs(destj - j)
     return cost
 
+
 def main():
-    n=8
+    n =   int( input("n değerini giriniz\t"))
+
     matrix = defineMatrix(n)
+    dest = defineMatrix(n)
     # # matrix = [
     # #     [5, 2, 6],
     # #     [1, 4, 3],
     # #     [0, 8, 7]
     # # ]
     # printMatrix(defineDestinationMatrix(n))
+    print("root")
     printMatrix(matrix)
+    print("destination ")
+    printMatrix(dest)
     input("hesaplamaya başlamak için herhangi bir tuşa basın")
-    verifyMatrix(matrix)
+    if verifyMatrix(matrix,dest):
+        print("matrixes are equal")
+        return
 
-    root = Node(matrix,0)
+
+    root = Node(matrix,dest, 0)
     print()
     # aStar(root)
     bfsWithAdder(root)
     # depthLimitedSearch(root,20)
     # depthFirstSearch(root)
     # uniformCostSearch(root)
+
+
 if __name__ == '__main__':
     main()
-
-
